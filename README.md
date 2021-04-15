@@ -1,7 +1,9 @@
 # **auto_free_fea_sim**
 
+*Disclaimer:* I'm not a programmer, I'm a Linux an Open-Source intusiast and mechanical designer/engineer.
+
 This is intended to be a free framework to be used by everyone in batch FEA simulation.
-The idea is to use this programs in WSL, but it's perfectly suitable for use in a Linux workstation.
+The idea is to use this programs in WSL2, but it's perfectly suitable for use in a Linux workstation.
 
 The main ideia consists in running a batch of simulations inside WSL, using a parametric model and to capture those results.
 This process offers advantages where one have a lot of similar models that have to be simulated in FEA.
@@ -9,10 +11,10 @@ This process offers advantages where one have a lot of similar models that have 
 ## Instalation Steps
 
 1. Install Ubuntu 18.04(yes, it has to the 18.04 version, I didn't get this to work on the 20.04 version)
-2. Run the **main.sh** script there's inside the **installing_sm** folder
+2. Run the **main.sh** script that is inside the **installing_sm** folder
 3. Follow the instructions on **installing_podman.md**(and yes, it can be Docker, but since to run Docker one must have admin privileges, this approach does not)
 
-That's it. It seems simple, but it took me awhile to come with this setup, hope you enjoy it. :)
+That's it. It seems simple, but it took me awhile to come up with this setup, hope you enjoy it. :)
 
 *Note*: This was tested on WSL2, it still pending the test on WSL1. This *should* work in a Linux setup, but this is not tested yet.
 
@@ -31,7 +33,8 @@ That's it. It seems simple, but it took me awhile to come with this setup, hope 
 
 In the **example** folder there is an example of the workflow in this process. If there's any doubt, please send me an e-mail, I'll try to answer ASAP.
 
-Email: 
+Email: pedro.moresco93@outlook.com
+Twitter: [peter_moresco](https://twitter.com/peter_moresco)
 
 ## TO-DO
 - [ ] Get the results directly from the .comm file
@@ -39,3 +42,6 @@ Email:
 - [ ] Automate the podman installation
 - [ ] Improve the Welcome page
 - [ ] Provide the **example**
+- [ ] Make a video explaining the process
+- [ ] Make a video modeling the parametric model
+- [ ] Make a video installling it
