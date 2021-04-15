@@ -1,6 +1,6 @@
 # **auto_free_fea_sim**
 
-*Disclaimer:* I'm not a programmer, I'm a Linux an Open-Source intusiast and mechanical designer/engineer.
+*Disclaimer:* I'm not a programmer, I'm a Linux an Open-Source enthusiast and mechanical designer/engineer.
 
 This is intended to be a free framework to be used by everyone in batch FEA simulation.
 The idea is to use this programs in WSL2, but it's perfectly suitable for use in a Linux workstation.
@@ -10,11 +10,11 @@ This process offers advantages where one have a lot of similar models that have 
 
 ## Instalation Steps
 
-1. Install Ubuntu 18.04(yes, it has to the 18.04 version, I didn't get this to work on the 20.04 version)
+1. Install Ubuntu 18.04(yes, it has to be the 18.04 version, I didn't get this to work on the 20.04 version)
 2. Run the **main.sh** script that is inside the **installing_sm** folder
-3. Follow the instructions on **installing_podman.md**(and yes, it can be Docker, but since to run Docker one must have admin privileges, this approach does not)
+3. Follow the instructions on **installing_podman.md**(and yes, it can be Docker, but since to run Docker one must have admin privileges, this approach was used)
 
-That's it. It seems simple, but it took me awhile to come up with this setup, hope you enjoy it. :)
+That's it. It seems simple, but it took me some time to come up with this setup, hope you enjoy it. :)
 
 *Note*: This was tested on WSL2, it still pending the test on WSL1. This *should* work in a Linux setup, but this is not tested yet.
 
