@@ -33,8 +33,7 @@ def run_test(install, max_count):
     # Diagnose the results
     RUN_DIAGNOSE(as_run, tmp_dir)
     # Finishing job
-    click.echo(click.style('\nJob finished\n',
-        fg='yellow', bold=True))
+    click.echo(click.style('\nJob finished\n', fg='yellow'))
 
 def AS_RUN(ins):
     userlogin = getpass.getuser()
