@@ -113,7 +113,10 @@ def RUN_TEST(as_run, tmp_dir, testcases, m_count):
             break
 
         click.echo(click.style('Working on {}, {} of {} ({:.2f}%)\r'.format(test.strip(), i, COUNT,i/COUNT * 100), fg='blue'), nl=False)
-        run_str = '{} --test {} {} >> {}screen'.format(as_run, test.strip(), tmp_dir, tmp_dir)
+        if install == 'code-aster-parallel':
+            run_str = '{} --vers stable_mpi --test {} {} >> {}screen'.format(as_run, test.strip(), tmp_dir, tmp_dir)
+        else:
+            run_str = '{} --test {} {} >> {}screen'.format(as_run, test.strip(), tmp_dir, tmp_dir)
         subprocess.run([run_str], shell=True)
 
     click.echo(click.style('The tests took {:.2f} minutes to run                             '.format((time.time() - INIT)/60), 
