@@ -12,12 +12,14 @@ import click
         help='Define the type of installation to run the tests')
 @click.option('--max_count', '-mc',
         default=0, help='Number of test cases to run')
-def run_test(install, max_count):
+@click.option('--ca_path', '-cap', 
+                default='', help='Path to Code Aster as_run file')
+def run_test(install, max_count, ca_path):
     '''
     This script run the test cases for Code Aster.
     '''
     # Define the 'AS_RUN' string
-    as_run = AS_RUN(install)
+    as_run = AS_RUN(install, ca_path)
     click.echo(click.style('Found the Code Aster as_run\n {}'.format(as_run),
         fg='yellow'))
     # Create temp dir
@@ -36,9 +38,9 @@ def run_test(install, max_count):
     click.echo(click.style('\nJob finished\n',
         fg='yellow', bold=True))
 
-def AS_RUN(ins):
+def AS_RUN(ins, ca_path):
     userlogin = getpass.getuser()
-    if ins == 'salome-meca':
+    if ins == 'salome-meca' and ca_path == '':
         # Compose path string
         sm_path = ''.join(['/home/', userlogin, '/salome_meca/'])
         if not os.path.exists(sm_path):
@@ -57,12 +59,19 @@ def AS_RUN(ins):
                 # Returns the string to run Code Aster as_run
                 # From Salome Meca as a shell
                 return run_path + ' shell -- as_run'
-    elif ins == 'code-aster' or ins == 'code-aster-parallel':
+    elif ins == 'code-aster' or ins == 'code-aster-parallel' and ca_path == '':
         ca_path = ''.join(['/home/', userlogin, '/aster/bin/as_run'])
         if not os.path.exists(ca_path):
             raise Exception('The Code Aster as_run was not found in "{}"'.format(ca_path))
         else:
             return ca_path
+    elif ca_path != '':
+        try:
+            # Checks if the path to as_run is valid
+            ca_path = os.path.join(ca_path, 'PRODUCTS', 'code-aster', 'bin', 'as_run')
+            os.system('{} --version > /dev/null'.format(ca_path))
+        except:
+            raise Exception('The as_run script was not found in the provided path \n {}'.format(ca_path))
 
 def TMP_DIR():
     try:

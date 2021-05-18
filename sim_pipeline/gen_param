@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import os
+import click
+import json
+import pandas as pd
+from pandas_ods_reader import read_ods
+
+@click.command()
+@click.option('-i', '--input_file', 
+        help='This is the input .ods file to process.')
+@click.option('-t', '--tab',
+        help='Name or index to the tab to use.')
+@click.option('-o', '--out_dir', 
+        help='Output directory.')
+@click.option('-cf', '--clean_folder', 
+        default=False, 
+        help='Cleans the output directory before creating the files.')
+@click.option('-ic', '--index_column',
+        default=0,
+        help='The column to be used as index.')
+def main(input_file, tab=1, out_dir='', clean_folder=False, index_column=0):
+    '''This scripts takes a .ods file and export the rows in json format.
+    '''
+    # Checks the sanity of the paths
+    assert os.path.isfile(input_file), 'The {} file does not exists'.format(input_file)
+    assert os.path.isdir(out_dir), 'The {} directory does not exits'.format(out_dir)
+    # Checks if the tab is not null
+    if not any(isinstance(tab, str), isinstance(tab, int)) and tab != '':
+        tab = 1
+    # Acess the input file
+    df = read_ods(input_file, tab)
+    # Clean the folder
+    if clean_folder:
+        cl_folder(out_dir)
+    # Get all the columns
+    cols = list(df.columns)
+    # Gets the index value
+    if isinstance(index_column, str):
+        tmp_index = cols.index(index_column)
+    elif isinstance(index_column, int):
+        tmp_index = index_column
+    id_value = cols[tmp_index]
+    cols.pop(tmp_index)
+    # Creates the parameters
+    for i in df.index:
+        # Create the parameters dict
+        params = {}
+        tmp_row = df.loc[i]
+        for col in cols:
+            params[col] = tmp_row[col]
+        # Create the filepath
+        tmp_fp = os.path.join(out_dir, '{}.json'.format(tmp_row[id_value]))
+        # Save file
+        with open(tmp_fp, 'w') as f:
+            json.dump(params, f, indent=4)
+    click.secho('Job done', fg='green')
+
+def cl_folder(o_dir):
+    '''Clean all the contents of a file
+    '''
+    files = os.listdir(o_dir)
+    if len(files) == 0:
+        click.secho('The {} path is empty.'.format(o_dir), fg='cyan')
+    else:
+        click.secho('Cleaning {} directory.'.format(o_dir), fg='cyan')
+        for _f in files:
+            try:
+                os.remove(os.path.join(o_dir, _f))
+            except:
+                click.secho('The {} file could not be removed'.format(_f), fg='red')
+
+if __name__ == '__main__':
+    main()

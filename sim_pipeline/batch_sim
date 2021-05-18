@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+import time
+import getpass
+import click
+
+@click.command()
+@click.option('-rd', '--run_dir',
+        default='', 
+        help='The directory that contains the three folders needed: ./par ./sim ./res')
+@click.option('-mc', '--max_count',
+        default=0,
+        help='Number of simulations  to run. If none is provided, all cases will be runned.')
+@click.option('-rn', '--run_cases',
+        default='',
+        help='Text file with the specific cases to run. If none is provided, all cases will be runned.')
+@click.option('-sm', '--sm_path',
+        default='',
+        help='The path to salome-meca excecutable script.')
+def run_batch(run_dir, max_count, run_cases, sm_path):
+    '''This script run batches simulations using a three folder structure:
+
+    \b-> par: The folder where the parameters files(.json) are found
+
+    \b-> sim: The folder where the simulations files(.py, .comm, export) will be loaded.
+
+        Here three files are expected:
+
+        \b\b--> geom.py: Salome-Meca script that imports from the param.json and export the mesh file
+
+        \b\b--> .comm: Code-Aster file for the simulation
+
+        \b\b--> export: Code-Aster export file that will be run.
+
+    \b- res: The folder where the results extracted will be stored.'''
+    # Check if the path is empty
+    while run_dir == '':
+        click.echo(click.style('The run_dir was not provided, please enter one:',
+                fg='red'))
+        run_dir = str(input())
+    # Check the directories
+    par_dir, sim_dir, res_dir = check_dir(run_dir)
+    clean_dir(res_dir)
+    # Find the salome path
+    sm_bin = check_sm(sm_path)
+    # Initiates the simulations
+    init_time = time.time()
+    sim_files = os.listdir(par_dir)
+    count_sf = len(sim_files)
+    # Check if there are any parameters
+    if count_sf == 0:
+        raise Exception('The {} folder is empty'.format(par_dir))
+    click.echo(click.style('{} parameter files were found'.format(count_sf),
+            fg='cyan'))
+    click.echo(click.style('Initating the simulations',
+            fg='green', bold=True))
+    for i, case in enumerate(sim_files):
+        index = i + 1
+        click.echo(click.style('Working on case {}, {} of {} ({:.2f}%)\r'.format(case, index, count_sf, (i/count_sf) * 100), 
+            fg='cyan'), nl=False)
+        # Move script to the right folder
+        mv_param(par_dir, sim_dir, case)
+        # Run script
+        run_case(sm_path, sim_dir)
+        #TODO extract the results and export the results
+        ex_results(sim_dir, res_dir, case)
+        #BACKIN
+
+    click.echo(click.style('The cases took {:.2f} minutes to run               '.format((time.time() - init_time)/60),
+        fg='green', bold=True))
+    #TODO remove the neccessity for a res folder
+    #TODO implement all arguments
+    #TODO include other run possiblities
+    #TODO include time estimate
+    #TODO improve the json structure
+    #TODO structure the extract routine. Maybe a config file
+    return 0
+
+def check_dir(r_dir):
+    '''
+    This function checks if the three dir exists:
+    - par
+    - sim
+    - res
+    '''
+    #TODO add to check the files in sim
+    par = os.path.join(r_dir, 'par')
+    sim = os.path.join(r_dir, 'sim')
+    res = os.path.join(r_dir, 'res')
+    if not os.path.exists(par):
+        raise Exception('The {} path does not exists'.format(par))
+    elif not os.path.exists(sim):
+        raise Exception('The {} path does not exists'.format(sim))
+    elif not os.path.exists(res):
+        raise Exception('The {} path does not exists'.format(res))
+    return par, sim, res
+
+def clean_dir(cl_dir):
+    '''
+    Eliminates all the files in a given directory
+    '''
+    files = os.listdir(cl_dir)
+    click.echo(click.style('Cleaning {} directory'.format(cl_dir),
+            fg='yellow'))
+    if len(files) == 0:
+        click.echo(click.style('The {} path is empty'.format(cl_dir),
+                fg='yellow'))
+    else:
+        click.echo(click.style('The {} files in the path {} will be removed'.format(len(files), cl_dir),
+                fg='yellow'))
+        for _file in files:
+            try:
+                os.remove(os.path.join(cl_dir, _file))
+            except:
+                click.echo(click.style('The {} could not be removed, continue[y, N]?',
+                        fg='red'))
+                answer = str(input())
+                if answer == 'y':
+                    continue
+                else:
+                    sys.exit()
+
+def check_sm(sm_dir):
+    '''
+    Checks the provided Salome-Meca path.
+    '''
+    while sm_dir == '':
+        click.echo(click.style('The path to Salome-Meca was not provided, please enter one', 
+                fg='red'))
+        sm_dir = str(input())
+    assert(os.path.exists(sm_dir))
+    return sm_dir
+
+def mv_param(par_dir, sim_dir, case):
+    '''
+    This script moves the paramter folder to the 
+    simulation folder
+    '''
+    par_path = os.path.join(par_dir, case)
+    sim_path = os.path.join(sim_dir, 'param.json')
+    os.system('cp {} {}'.format(par_path, sim_path))
+
+
+def run_case(sm_path, sim_path):
+    '''
+    Run the  case using the SM path
+    '''
+    # Run the SM script to generate the geometry and mesh
+    geom_path = os.path.join(sim_path, 'geom.py')
+    sm_str = '{}salome -t {} > log.salome'.format(sm_path, geom_path)
+    subprocess.run([sm_str], shell=True, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, check=True)
+    # Run the CA simulation
+    export_path = os.path.join(sim_path, 'export')
+    ca_str = '{}salome shell -- as_run {} > log'.format(sm_path, export_path)
+    subprocess.run([ca_str], shell=True, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, check=True)
+
+
+def ex_results(sim_dir, res_dir, case):
+    '''
+    This routine extacts the results and creates the res file
+    '''
+    # Remove the previous results
+    std_file = os.path.join(sim_dir, 'results.txt')
+    if os.path.exists(std_file):
+        os.remove(std_file)
+    ex_t_script = os.path.join(sim_dir, 'extract_results.py')
+    os.system(ex_t_script)
+    res_file = os.path.join(res_dir, case.replace('.json', '.res'))
+    os.system('cp {} {}'.format(std_file, res_file))
+
+if __name__ == '__main__':
+    run_batch()
