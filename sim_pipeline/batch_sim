@@ -57,17 +57,20 @@ def run_batch(run_dir, max_count, run_cases, sm_path):
             fg='cyan'))
     click.echo(click.style('Initating the simulations',
             fg='green', bold=True))
-    for i, case in enumerate(sim_files):
-        index = i + 1
-        click.echo(click.style('Working on case {}, {} of {} ({:.2f}%)\r'.format(case, index, count_sf, (i/count_sf) * 100), 
-            fg='cyan'), nl=False)
-        # Move script to the right folder
-        mv_param(par_dir, sim_dir, case)
-        # Run script
-        run_case(sm_path, sim_dir)
-        #TODO extract the results and export the results
-        ex_results(sim_dir, res_dir, case)
-        #BACKIN
+    term_w = click.get_terminal_size()[1]
+    with click.progressbar(sim_files, fill_char='-', empty_char='o', width=term_w,
+            color='cyan', show_pos=True, label='Simulating', item_show_func=repr) as bar:
+        for case in bar:
+            #index = i + 1
+            # click.echo(click.style('Working on case {}, {} of {} ({:.2f}%)\r'.format(case, index, count_sf, (i/count_sf) * 100), 
+                #fg='cyan'), nl=False)
+            # Move script to the right folder
+            mv_param(par_dir, sim_dir, case)
+            # Run script
+            run_case(sm_path, sim_dir)
+            #TODO extract the results and export the results
+            ex_results(sim_dir, res_dir, case)
+            #BACKIN
 
     click.echo(click.style('The cases took {:.2f} minutes to run               '.format((time.time() - init_time)/60),
         fg='green', bold=True))
